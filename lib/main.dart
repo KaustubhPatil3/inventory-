@@ -8,6 +8,13 @@ import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // REGISTER CONTROLLERS BEFORE APP START
+  Get.put(AuthController(), permanent: true);
+  Get.put(ProductController(), permanent: true);
+  Get.put(SalesController(), permanent: true);
+
   runApp(const MyApp());
 }
 
@@ -21,11 +28,6 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      initialBinding: BindingsBuilder(() {
-        Get.put(AuthController());
-        Get.put(ProductController());
-        Get.put(SalesController());
-      }),
       initialRoute: '/splash',
       getPages: AppRoutes.routes,
     );

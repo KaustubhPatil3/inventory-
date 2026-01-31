@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:collection/collection.dart';
+
 import '../../controllers/product_controller.dart';
 import '../../models/product_model.dart';
 
@@ -79,35 +81,13 @@ class AddProduct extends StatelessWidget {
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
                   ),
-                  onPressed: () {
-                    if (name.text.isEmpty ||
-                        category.text.isEmpty ||
-                        price.text.isEmpty ||
-                        stock.text.isEmpty) {
-                      Get.snackbar("Error", "Fill all fields",
-                          snackPosition: SnackPosition.BOTTOM);
-                      return;
-                    }
-
-                    final p = ProductModel(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: name.text.trim(),
-                      category: category.text.trim(),
-                      price: double.parse(price.text),
-                      stock: int.parse(stock.text),
-                      createdAt: DateTime.now().toString(),
-                    );
-
-                    product.addProduct(p);
-                    Get.back();
-
-                    Get.snackbar("Success", "Product added",
-                        snackPosition: SnackPosition.BOTTOM);
-                  },
+                  onPressed: _saveProduct,
                   child: const Text(
                     "SAVE PRODUCT",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, letterSpacing: 1),
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
                   ),
                 ),
               ),
@@ -116,6 +96,62 @@ class AddProduct extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _saveProduct() {
+    if (name.text.isEmpty ||
+        category.text.isEmpty ||
+        price.text.isEmpty ||
+        stock.text.isEmpty) {
+      Get.snackbar("Error", "Fill all fields",
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    // AUTO UPPERCASE NAME
+    final productName = name.text.trim().toUpperCase();
+    final newStock = int.tryParse(stock.text) ?? 0;
+    final newPrice = double.tryParse(price.text) ?? 0;
+
+    if (newStock <= 0 || newPrice <= 0) {
+      Get.snackbar("Error", "Enter valid stock & price",
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    // CHECK EXISTING PRODUCT
+    final existing = product.products.firstWhereOrNull(
+      (e) => e.name.toUpperCase() == productName,
+    );
+
+    if (existing != null) {
+      // UPDATE EXISTING PRODUCT
+      existing.stock += newStock;
+      existing.price = newPrice;
+      existing.category = category.text.trim();
+
+      product.updateProduct(existing);
+
+      Get.back();
+      Get.snackbar("Updated", "Stock increased",
+          snackPosition: SnackPosition.BOTTOM);
+    } else {
+      // CREATE NEW PRODUCT
+      final p = ProductModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: productName,
+        category: category.text.trim(),
+        price: newPrice,
+        stock: newStock,
+        createdAt: DateTime.now().toString(),
+      );
+
+      product.addProduct(p);
+
+      Get.back();
+      Get.snackbar("Success", "Product added",
+          snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
   Widget _field({

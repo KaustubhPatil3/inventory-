@@ -25,15 +25,28 @@ class SalesController extends GetxController {
       productId: productId,
       productName: name,
       quantity: qty,
-      date: DateTime.now().toString(),
+      date: DateTime.now().toIso8601String(),
     );
 
     sales.add(sale);
-
-    // ✅ Convert RxList to normal List
     await storage.saveSales(sales.toList());
 
-    // ✅ Reduce stock
     product.reduceStock(productId, qty);
+  }
+
+  // ================= DASHBOARD HELPERS =================
+
+  int todaySalesCount() {
+    final today = DateTime.now().toIso8601String().split('T').first;
+
+    return sales.where((s) => s.date.startsWith(today)).length;
+  }
+
+  int totalItemsSold() {
+    return sales.fold(0, (sum, s) => sum + s.quantity);
+  }
+
+  void clearSales() {
+    sales.clear();
   }
 }

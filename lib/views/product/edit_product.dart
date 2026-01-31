@@ -34,7 +34,7 @@ class EditProduct extends StatelessWidget {
             const SizedBox(height: 15),
             Obx(
               () => DropdownButtonFormField(
-                value: selectedCategory.value,
+                initialValue: selectedCategory.value,
                 items: categories
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),

@@ -10,6 +10,8 @@ import '../views/settings/settings.dart';
 import '../views/settings/about.dart';
 import '../views/sales/sales_history.dart';
 import '../views/product/edit_product.dart';
+import '../views/product/low_stock.dart';
+import '../views/product/stock_screen.dart';
 
 class AppRoutes {
   static final routes = [
@@ -32,5 +34,8 @@ class AppRoutes {
     GetPage(name: '/sales-history', page: () => SalesHistory()),
 
     GetPage(name: '/edit-product', page: () => EditProduct()),
+
+    GetPage(name: '/low-stock', page: () => LowStockScreen()),
+    GetPage(name: '/stock', page: () => StockScreen()),
   ];
 }
