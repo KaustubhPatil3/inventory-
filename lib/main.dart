@@ -4,13 +4,13 @@ import 'package:get/get.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/product_controller.dart';
 import 'controllers/sales_controller.dart';
+
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // REGISTER CONTROLLERS BEFORE APP START
   Get.put(AuthController(), permanent: true);
   Get.put(ProductController(), permanent: true);
   Get.put(SalesController(), permanent: true);

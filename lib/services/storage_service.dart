@@ -6,10 +6,10 @@ import '../models/product_model.dart';
 import '../models/sale_model.dart';
 
 class StorageService {
-  static const String userKey = "user";
-  static const String loginKey = "loggedIn";
-  static const String productKey = "products";
-  static const String salesKey = "sales";
+  static const userKey = "user";
+  static const loginKey = "loggedIn";
+  static const productKey = "products";
+  static const salesKey = "sales";
 
   // ================= USER =================
 
@@ -48,7 +48,9 @@ class StorageService {
 
   Future<void> saveProducts(List<ProductModel> products) async {
     final pref = await SharedPreferences.getInstance();
+
     final data = products.map((e) => e.toJson()).toList();
+
     await pref.setString(productKey, jsonEncode(data));
   }
 
@@ -59,6 +61,7 @@ class StorageService {
     if (data == null) return [];
 
     final list = jsonDecode(data) as List;
+
     return list.map((e) => ProductModel.fromJson(e)).toList();
   }
 
@@ -66,7 +69,9 @@ class StorageService {
 
   Future<void> saveSales(List<SaleModel> sales) async {
     final pref = await SharedPreferences.getInstance();
+
     final data = sales.map((e) => e.toJson()).toList();
+
     await pref.setString(salesKey, jsonEncode(data));
   }
 
@@ -77,6 +82,7 @@ class StorageService {
     if (data == null) return [];
 
     final list = jsonDecode(data) as List;
+
     return list.map((e) => SaleModel.fromJson(e)).toList();
   }
 
@@ -85,5 +91,21 @@ class StorageService {
   Future<void> clearAll() async {
     final pref = await SharedPreferences.getInstance();
     await pref.clear();
+  }
+
+  // ================= SETTINGS =================
+
+  Future<void> saveSettings(Map<String, dynamic> data) async {
+    final pref = await SharedPreferences.getInstance();
+    await pref.setString('settings', jsonEncode(data));
+  }
+
+  Future<Map<String, dynamic>> getSettings() async {
+    final pref = await SharedPreferences.getInstance();
+    final data = pref.getString('settings');
+
+    if (data == null) return {};
+
+    return Map<String, dynamic>.from(jsonDecode(data));
   }
 }

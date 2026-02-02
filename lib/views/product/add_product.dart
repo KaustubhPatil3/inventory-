@@ -9,87 +9,45 @@ class AddProduct extends StatelessWidget {
   AddProduct({super.key});
 
   final name = TextEditingController();
-  final category = TextEditingController();
   final price = TextEditingController();
   final stock = TextEditingController();
 
-  final ProductController product = Get.find<ProductController>();
+  final selectedCategory = 'Electronics'.obs;
+
+  final categories = ["Electronics", "Grocery", "Clothing", "Other"];
+
+  final product = Get.find<ProductController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Product"), centerTitle: true),
+      appBar: AppBar(title: const Text("Add Product")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
-                color: Theme.of(context).cardColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(.05),
-                    blurRadius: 12,
-                  )
-                ],
-              ),
-              child: Column(
-                children: [
-                  _field(
-                    controller: name,
-                    label: "Product Name",
-                    icon: Icons.shopping_bag,
-                  ),
-                  const SizedBox(height: 15),
-                  _field(
-                    controller: category,
-                    label: "Category",
-                    icon: Icons.category,
-                  ),
-                  const SizedBox(height: 15),
-                  _field(
-                    controller: price,
-                    label: "Price",
-                    icon: Icons.currency_rupee,
-                    keyboard: TextInputType.number,
-                  ),
-                  const SizedBox(height: 15),
-                  _field(
-                    controller: stock,
-                    label: "Stock Quantity",
-                    icon: Icons.inventory,
-                    keyboard: TextInputType.number,
-                  ),
-                ],
-              ),
-            ),
+            _field(name, "Product Name", Icons.shopping_bag),
+            const SizedBox(height: 15),
+            Obx(() => DropdownButtonFormField(
+                  value: selectedCategory.value,
+                  items: categories
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
+                  onChanged: (v) => selectedCategory.value = v!,
+                  decoration: const InputDecoration(labelText: "Category"),
+                )),
+            const SizedBox(height: 15),
+            _field(price, "Price", Icons.currency_rupee,
+                type: TextInputType.number),
+            const SizedBox(height: 15),
+            _field(stock, "Stock", Icons.inventory, type: TextInputType.number),
             const SizedBox(height: 25),
             SizedBox(
               width: double.infinity,
               height: 50,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
-                  ),
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                  ),
-                  onPressed: _saveProduct,
-                  child: const Text(
-                    "SAVE PRODUCT",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
+              child: ElevatedButton(
+                onPressed: _save,
+                child: const Text("SAVE"),
               ),
             )
           ],
@@ -98,75 +56,58 @@ class AddProduct extends StatelessWidget {
     );
   }
 
-  void _saveProduct() {
-    if (name.text.isEmpty ||
-        category.text.isEmpty ||
-        price.text.isEmpty ||
-        stock.text.isEmpty) {
-      Get.snackbar("Error", "Fill all fields",
-          snackPosition: SnackPosition.BOTTOM);
+  void _save() {
+    if (name.text.isEmpty || price.text.isEmpty || stock.text.isEmpty) {
+      Get.snackbar("Error", "Fill all fields");
       return;
     }
 
-    // AUTO UPPERCASE NAME
+    final s = int.tryParse(stock.text) ?? 0;
+    final p = double.tryParse(price.text) ?? 0;
+
+    if (s <= 0 || p <= 0) {
+      Get.snackbar("Error", "Invalid values");
+      return;
+    }
+
     final productName = name.text.trim().toUpperCase();
-    final newStock = int.tryParse(stock.text) ?? 0;
-    final newPrice = double.tryParse(price.text) ?? 0;
 
-    if (newStock <= 0 || newPrice <= 0) {
-      Get.snackbar("Error", "Enter valid stock & price",
-          snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-
-    // CHECK EXISTING PRODUCT
-    final existing = product.products.firstWhereOrNull(
-      (e) => e.name.toUpperCase() == productName,
-    );
+    final existing = product.products
+        .firstWhereOrNull((e) => e.name.toUpperCase() == productName);
 
     if (existing != null) {
-      // UPDATE EXISTING PRODUCT
-      existing.stock += newStock;
-      existing.price = newPrice;
-      existing.category = category.text.trim();
+      existing.stock += s;
+      existing.price = p;
 
       product.updateProduct(existing);
 
       Get.back();
-      Get.snackbar("Updated", "Stock increased",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar("Updated", "Stock increased");
     } else {
-      // CREATE NEW PRODUCT
-      final p = ProductModel(
+      final model = ProductModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: productName,
-        category: category.text.trim(),
-        price: newPrice,
-        stock: newStock,
+        category: selectedCategory.value,
+        price: p,
+        stock: s,
         createdAt: DateTime.now().toString(),
       );
 
-      product.addProduct(p);
+      product.addProduct(model);
 
       Get.back();
-      Get.snackbar("Success", "Product added",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar("Success", "Product added");
     }
   }
 
-  Widget _field({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType keyboard = TextInputType.text,
-  }) {
+  Widget _field(TextEditingController c, String l, IconData i,
+      {TextInputType type = TextInputType.text}) {
     return TextField(
-      controller: controller,
-      keyboardType: keyboard,
+      controller: c,
+      keyboardType: type,
       decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+        labelText: l,
+        prefixIcon: Icon(i),
       ),
     );
   }

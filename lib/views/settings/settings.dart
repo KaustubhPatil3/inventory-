@@ -1,69 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../services/storage_service.dart';
 
 class Settings extends StatelessWidget {
   Settings({super.key});
 
-  final StorageService storage = StorageService();
+  final storage = StorageService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Settings")),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _tile(
-              icon: Icons.delete_forever,
-              title: "Clear All Data",
-              color: Colors.redAccent,
-              onTap: () {
-                Get.defaultDialog(
-                  title: "Confirm",
-                  middleText: "Delete everything?",
-                  confirm: ElevatedButton(
-                    onPressed: () async {
-                      await storage.clearAll();
-                      Get.offAllNamed('/login');
-                    },
-                    child: const Text("Yes"),
-                  ),
-                  cancel: TextButton(
-                    onPressed: Get.back,
-                    child: const Text("Cancel"),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            _tile(
-              icon: Icons.info_outline,
-              title: "About",
-              color: Colors.blue,
-              onTap: () => Get.toNamed('/about'),
-            ),
-          ],
-        ),
+        children: [
+          _tile(
+            Icons.delete,
+            "Clear All Data",
+            Colors.red,
+            _clear,
+          ),
+          _tile(
+            Icons.info,
+            "About",
+            Colors.blue,
+            () => Get.toNamed('/about'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _tile({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      onTap: onTap,
-      leading: CircleAvatar(
-        backgroundColor: color.withOpacity(.2),
-        child: Icon(icon, color: color),
+  Widget _tile(IconData i, String t, Color c, VoidCallback f) {
+    return Card(
+      child: ListTile(
+        onTap: f,
+        leading: CircleAvatar(
+          backgroundColor: c.withOpacity(.2),
+          child: Icon(i, color: c),
+        ),
+        title: Text(t),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       ),
-      title: Text(title),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+    );
+  }
+
+  void _clear() {
+    Get.defaultDialog(
+      title: "Confirm",
+      middleText: "Delete all data?",
+      confirm: ElevatedButton(
+        onPressed: () async {
+          await storage.clearAll();
+          Get.offAllNamed('/login');
+        },
+        child: const Text("Yes"),
+      ),
+      cancel: TextButton(
+        onPressed: Get.back,
+        child: const Text("Cancel"),
+      ),
     );
   }
 }

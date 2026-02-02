@@ -15,6 +15,24 @@ class ProductModel {
     required this.createdAt,
   });
 
+  ProductModel copyWith({
+    String? id,
+    String? name,
+    String? category,
+    double? price,
+    int? stock,
+    String? createdAt,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      price: price ?? this.price,
+      stock: stock ?? this.stock,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "id": id,

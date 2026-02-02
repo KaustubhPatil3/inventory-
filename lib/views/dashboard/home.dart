@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/auth_controller.dart';
 import '../../controllers/product_controller.dart';
 import '../../controllers/sales_controller.dart';
@@ -16,93 +17,104 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Inventory"),
+        title: const Text("Inventory Dashboard"),
         actions: [
-          IconButton(icon: const Icon(Icons.logout), onPressed: auth.logout),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: auth.logout,
+          )
         ],
       ),
-      body: Obx(() {
-        return Padding(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await product.loadProducts();
+          await sales.loadSales();
+        },
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _topStats(),
-              const SizedBox(height: 16),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  children: [
-                    _tile("Sell", Icons.shopping_cart, AppColors.primary,
-                        () => Get.toNamed('/sales')),
-                    _tile("Products", Icons.inventory, AppColors.secondary,
-                        () => Get.toNamed('/products')),
-                    _tile("Stock", Icons.store, Colors.green,
-                        () => Get.toNamed('/stock')),
-                    _tile("Low Stock", Icons.warning, AppColors.danger,
-                        () => Get.toNamed('/low-stock')),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.history),
-                  label: const Text("Sales History"),
-                  onPressed: () => Get.toNamed('/sales-history'),
-                ),
-              )
-            ],
-          ),
-        );
-      }),
+          children: [
+            Obx(() => _statsCard()),
+            const SizedBox(height: 20),
+            _menuGrid(),
+            const SizedBox(height: 20),
+            _salesButton(),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _topStats() {
+  // ================= STATS =================
+
+  Widget _statsCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.secondary],
         ),
-        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _stat("Products", product.products.length),
-          _stat("Stock", product.totalStock()),
-          _stat("Today", sales.todaySalesCount()),
+          _stat("Products", product.products.length.toString()),
+          _stat("Stock", product.totalStock().toString()),
+          _stat("Value", "₹${product.totalValue().toStringAsFixed(0)}"),
+          _stat("Today", sales.todaySalesCount().toString()),
         ],
       ),
     );
   }
 
-  Widget _stat(String t, int v) {
+  Widget _stat(String t, String v) {
     return Column(
       children: [
-        Text(v.toString(),
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold)),
+        Text(
+          v,
+          style: const TextStyle(
+              color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
         Text(t, style: const TextStyle(color: Colors.white70)),
       ],
     );
   }
 
-  Widget _tile(String title, IconData icon, Color color, VoidCallback onTap) {
-    return GestureDetector(
+  // ================= GRID =================
+
+  Widget _menuGrid() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 14,
+      mainAxisSpacing: 14,
+      children: [
+        _tile("Sell", Icons.shopping_cart, AppColors.primary,
+            () => Get.toNamed('/sales')),
+        _tile("Products", Icons.inventory, AppColors.secondary,
+            () => Get.toNamed('/products')),
+        _tile("Stock", Icons.store, Colors.green, () => Get.toNamed('/stock')),
+        _tile("Low Stock", Icons.warning, AppColors.danger,
+            () => Get.toNamed('/low-stock')),
+        _tile("Settings", Icons.settings, Colors.grey,
+            () => Get.toNamed('/settings')),
+      ],
+    );
+  }
+
+  Widget _tile(String t, IconData i, Color c, VoidCallback onTap) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: Theme.of(Get.context!).cardColor,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8)
+            BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 10)
           ],
         ),
         child: Column(
@@ -110,13 +122,26 @@ class Home extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 26,
-              backgroundColor: color.withOpacity(.15),
-              child: Icon(icon, color: color),
+              backgroundColor: c.withOpacity(.15),
+              child: Icon(i, color: c),
             ),
             const SizedBox(height: 10),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600))
+            Text(t, style: const TextStyle(fontWeight: FontWeight.w600))
           ],
         ),
+      ),
+    );
+  }
+
+  // ================= BUTTON =================
+
+  Widget _salesButton() {
+    return SizedBox(
+      height: 50,
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.history),
+        label: const Text("Sales History"),
+        onPressed: () => Get.toNamed('/sales-history'),
       ),
     );
   }

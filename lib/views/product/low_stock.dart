@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/product_controller.dart';
 import '../../theme/app_colors.dart';
 
@@ -25,29 +26,15 @@ class LowStockScreen extends StatelessWidget {
           itemBuilder: (_, i) {
             final p = list[i];
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                  color: AppColors.danger.withOpacity(.12),
-                  borderRadius: BorderRadius.circular(16)),
-              child: Row(
-                children: [
-                  const Icon(Icons.warning, color: AppColors.danger),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: Text(p.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600))),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                        color: AppColors.danger,
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Text("${p.stock}",
-                        style: const TextStyle(color: Colors.white)),
-                  )
-                ],
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.warning, color: AppColors.danger),
+                title: Text(p.name),
+                subtitle: Text("Stock: ${p.stock}"),
+                trailing: TextButton(
+                  onPressed: () => Get.toNamed('/edit-product', arguments: p),
+                  child: const Text("Restock"),
+                ),
               ),
             );
           },

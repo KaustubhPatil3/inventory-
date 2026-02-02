@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../controllers/sales_controller.dart';
 import '../../theme/app_colors.dart';
 
@@ -38,11 +39,15 @@ class SalesHistory extends StatelessWidget {
       ),
       body: Obx(() {
         if (sales.sales.isEmpty) {
-          return const Center(child: Text("No sales yet"));
+          return const Center(
+            child: Text("No sales yet"),
+          );
         }
 
         return Column(
           children: [
+            // ================= STATS =================
+
             Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -53,6 +58,9 @@ class SalesHistory extends StatelessWidget {
                 ],
               ),
             ),
+
+            // ================= LIST =================
+
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(12),
@@ -62,12 +70,24 @@ class SalesHistory extends StatelessWidget {
 
                   return Card(
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     child: ListTile(
                       leading: const Icon(Icons.point_of_sale),
-                      title: Text(s.productName),
+                      title: Text(
+                        s.productName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       subtitle: Text(
-                        "Qty: ${s.quantity}\n${s.date.split('T').first}",
+                        "Qty: ${s.quantity}\n${_formatDate(s.date)}",
+                      ),
+                      trailing: Text(
+                        "₹${(s.price * s.quantity).toStringAsFixed(2)}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   );
@@ -80,17 +100,32 @@ class SalesHistory extends StatelessWidget {
     );
   }
 
+  // ================= DATE FORMAT =================
+
+  String _formatDate(DateTime d) {
+    return "${d.day.toString().padLeft(2, '0')}/"
+        "${d.month.toString().padLeft(2, '0')}/"
+        "${d.year}";
+  }
+
+  // ================= STAT CARD =================
+
   Widget _stat(String t, int v) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(.12),
+          color: AppColors.primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(
           children: [
-            Text(t),
+            Text(
+              t,
+              style: const TextStyle(
+                color: Colors.black54,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               v.toString(),
